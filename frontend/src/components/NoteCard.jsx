@@ -5,17 +5,48 @@ import api from "../lib/axios";
 import toast from "react-hot-toast";
 
 const NoteCard = ({ note, setNotes }) => {
-  const handleDelete = async (e, id) => {
+  const handleDelete = (id, t) => {
+    api
+      .delete(`/notes/${id}`)
+      .then(() => {
+        setNotes((prev) => prev.filter((n) => n._id !== id));
+        toast.success("Note deleted successfully!");
+      })
+      .catch((error) => {
+        console.log(error);
+        toast.error("Failed to delete note");
+      })
+      .finally(() => {
+        toast.dismiss(t.id);
+      });
+  };
+
+  const confirmDelete = (e, id) => {
     e.preventDefault();
-    if (!window.confirm("Are you sure you want to delete this note?")) return;
-    try {
-      await api.delete(`/notes/${id}`);
-      setNotes((prev) => prev.filter((note) => note._id !== id));
-      toast.success("Note deleted successfully");
-    } catch (error) {
-      console.log("Error in handleDelete", error);
-      toast.error("Failed to delete note");
-    }
+    e.stopPropagation(); // prevent Link navigation
+
+    toast(
+      (t) => (
+        <div className="flex flex-col gap-2">
+          <span>Are you sure you want to delete this note?</span>
+          <div className="flex justify-end gap-2">
+            <button
+              className="btn btn-sm btn-error"
+              onClick={() => handleDelete(id, t)}
+            >
+              Yes
+            </button>
+            <button
+              className="btn btn-sm btn-ghost"
+              onClick={() => toast.dismiss(t.id)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ),
+      { duration: Infinity }
+    );
   };
 
   return (
@@ -35,7 +66,7 @@ const NoteCard = ({ note, setNotes }) => {
             <Edit2 className="size-4" />
             <button
               className="btn btn-ghost btn-xs text-error"
-              onClick={(e) => handleDelete(e, note._id)}
+              onClick={(e) => confirmDelete(e, note._id)}
             >
               <Trash2 className="size-4" />
             </button>
@@ -45,4 +76,5 @@ const NoteCard = ({ note, setNotes }) => {
     </Link>
   );
 };
+
 export default NoteCard;

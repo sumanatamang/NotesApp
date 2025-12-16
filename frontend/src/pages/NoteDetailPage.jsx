@@ -27,17 +27,40 @@ const NoteDetailPage = () => {
     fetchNote();
   }, [id]);
 
-  const handleDelete = async () => {
-    if (!window.confirm("Are you sure you want to delete this note?")) return;
-
-    try {
-      await api.delete(`/notes/${id}`);
-      toast.success("Note deleted");
-      navigate("/");
-    } catch (error) {
-      console.log("Error deleting the note:", error);
-      toast.error("Failed to delete note");
-    }
+  const handleDelete = () => {
+    toast(
+      (t) => (
+        <div className="flex flex-col gap-2">
+          <span>Are you sure you want to delete this note?</span>
+          <div className="flex justify-end gap-2">
+            <button
+              className="btn btn-sm btn-error"
+              onClick={async () => {
+                try {
+                  await api.delete(`/notes/${id}`);
+                  toast.success("Note deleted successfully!");
+                  navigate("/");
+                } catch (error) {
+                  console.log(error);
+                  toast.error("Failed to delete note");
+                } finally {
+                  t.dismiss();
+                }
+              }}
+            >
+              Yes
+            </button>
+            <button
+              className="btn btn-sm btn-ghost"
+              onClick={() => toast.dismiss(t.id)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ),
+      { duration: Infinity }
+    );
   };
 
   const handleSave = async () => {
@@ -130,4 +153,5 @@ const NoteDetailPage = () => {
     </div>
   );
 };
+
 export default NoteDetailPage;
